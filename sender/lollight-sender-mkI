@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+
+import urllib.request
+import random
+import time
+import sys
+
+host = ""
+
+def setColor(r,g,b):
+	global host
+	param = urllib.parse.urlencode({"r": r, "g": g, "b": b})
+	urllib.request.urlopen("http://"+host+"/do?action=set&"+param).read()
+
+def randomColor():
+	return [random.randint(0, 255) for _ in range(3)]
+
+def fade(current, new):
+	cr,cg,cb = current
+	nr,ng,nb = new
+
+	decrementer = lambda a, b: range(a+1, b, -1)
+	incrementer = lambda a, b: range(a+1, b,  1)
+
+	doer = [
+		cr < nr and incrementer(cr,nr) or decrementer(cr,nr),
+		cg < ng and incrementer(cg,ng) or decrementer(cg,ng),
+		cb < nb and incrementer(cb,nb) or decrementer(cb,nb),
+	]
+
+	print(doer)
+
+	iterators = [(iter(n),n.stop) for n in doer]
+	prevColor = current
+
+	while True:
+		newColor = [next(it,stop) for (it,stop) in iterators]
+
+		if prevColor == newColor:
+			break
+
+		prevColor = newColor
+		setColor(*newColor)
+		time.sleep(0.01)
+
+def parseColor(line):
+	return [int(n) for n in line.split(" ")[:3]]
+
+def main():
+	lastColor = (0,0,0)
+
+	for line in sys.stdin:
+		newColor = parseColor(line)
+		fade(lastColor, newColor)
+		lastColor = newColor
+
+if __name__ == "__main__":
+	if len(sys.argv) != 2:
+		print("Usage: {} <host[:port]>".format(sys.argv[0]))
+		sys.exit(1)
+
+	host = sys.argv[1]
+	main()
