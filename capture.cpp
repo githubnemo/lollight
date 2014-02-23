@@ -75,7 +75,7 @@ int main(int, char**)
 				}
 			}
 
-			XFree (image);
+			XDestroyImage(image);
 		}
 
 		cout  << rSum / nSamples << " " << gSum / nSamples << " " << bSum / nSamples << endl;
